@@ -214,3 +214,46 @@ class InviteCode:
     def usage_log(self) -> tuple[UsageLogEntry, ...]:
         return tuple(self._usage_log)
 
+    @property
+    def lifecycle(self) -> tuple[AuditEvent, ...]:
+        self._refresh_expiry()
+        return tuple(self._lifecycle)
+
+    def activate(self, at: datetime | None = None) -> None:
+        timestamp = normalize_datetime(at or utc_now())
+        self._transition(InviteState.ACTIVE, timestamp, "Invite code activated and ready for use.")
+        self._refresh_expiry(timestamp)
+
+    def validate(self, at: datetime | None = None) -> ValidationResult:
+        timestamp = normalize_datetime(at or utc_now())
+        self._refresh_expiry(timestamp)
+        state = self.__state
+
+        if state is InviteState.ACTIVE and self.__remaining_uses > 0:
+            reason = None
+            usable = True
+        elif state is InviteState.GENERATED:
+            reason = "not active"
+            usable = False
+        elif state is InviteState.EXPIRED:
+            reason = "expired"
+            usable = False
+        elif state is InviteState.EXHAUSTED:
+            reason = "exhausted"
+            usable = False
+        elif state is InviteState.REVOKED:
+            reason = "revoked"
+            usable = False
+        else:
+            reason = f"unusable ({state.value.lower()})"
+            usable = False
+
+        return ValidationResult(
+            usable=usable,
+            reason=reason,
+            state=state,
+            masked_code=self.masked_code,
+            remaining_uses=self.__remaining_uses,
+            required_access_level=self.required_access_level,
+            expires_at=self.expires_at,
+        )
