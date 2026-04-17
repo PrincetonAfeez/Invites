@@ -54,3 +54,25 @@ class InviteNotFoundError(InviteError):
 
 class InviteRecordError(InviteError):
     """Raised when persisted invite data fails validation."""
+
+@dataclass(frozen=True)
+class UsageLogEntry:
+    timestamp: datetime
+    outcome: UsageOutcome
+    detail: str
+
+    def to_record(self) -> dict[str, str]:
+        return {
+            "timestamp": normalize_datetime(self.timestamp).isoformat(),
+            "outcome": self.outcome.value,
+            "detail": self.detail,
+        }
+
+    @classmethod
+    def from_record(cls, record: dict[str, str]) -> "UsageLogEntry":
+        return cls(
+            timestamp=datetime.fromisoformat(record["timestamp"]),
+            outcome=UsageOutcome(record["outcome"]),
+            detail=record["detail"],
+        )
+
