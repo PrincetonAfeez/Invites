@@ -334,3 +334,17 @@ class InviteCode:
             usage_log=tuple(self._usage_log),
             lifecycle=tuple(self.lifecycle),
         )
+
+    def to_record(self) -> dict[str, Any]:
+        return {
+            "code_string": self.code_string,
+            "creator_id": self.creator_id,
+            "required_access_level": self.required_access_level,
+            "max_use_count": self.max_use_count,
+            "expires_at": self.expires_at.isoformat(),
+            "state": self.state.value,
+            "remaining_uses": self.remaining_uses,
+            "revoked_reason": self.revoked_reason,
+            "usage_log": [entry.to_record() for entry in self._usage_log],
+            "lifecycle": [event.to_record() for event in self._lifecycle],
+        }
