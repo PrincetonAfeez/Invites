@@ -453,3 +453,11 @@ class InviteCode:
             if not isinstance(value, list):
                 raise InviteRecordError(f"{key} must be a list.")
 
+    def _refresh_expiry(self, at: datetime | None = None) -> None:
+        timestamp = normalize_datetime(at or utc_now())
+        if self.__state is InviteState.ACTIVE and timestamp >= self.expires_at:
+            self._transition(
+                InviteState.EXPIRED,
+                timestamp,
+                "Invite expired during validation or access.",
+            )
