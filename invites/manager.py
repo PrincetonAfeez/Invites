@@ -90,3 +90,49 @@ class InviteManager:
             "codes": [invite.to_record() for invite in self._codes.values()],
         }
 
+    @classmethod 
+    def from_record(cls, record: dict[str, Any]) -> "InviteManager":
+        if not isinstance(record, dict):
+            raise InviteRecordError("Store root must be a JSON object.")
+
+        version = record.get("version", STORE_FORMAT_VERSION)
+        if version != STORE_FORMAT_VERSION:
+            raise InviteRecordError(
+                f"Unsupported store format version {version!r}; "
+                f"expected {STORE_FORMAT_VERSION}."
+            )
+
+        codes_raw = record.get("codes", [])
+        if codes_raw is None:
+            raise InviteRecordError("'codes' must be a list, not null.")
+        if not isinstance(codes_raw, list):
+            raise InviteRecordError("'codes' must be a list.")
+
+        codes = []
+        seen: set[str] = set()
+        for index, item in enumerate(codes_raw):
+            if not isinstance(item, dict):
+                raise InviteRecordError(f"Entry {index} in 'codes' must be an object.")
+            invite = InviteCode.from_record(item)
+            if invite.code_string in seen:
+                raise InviteRecordError(
+                    f"Duplicate invite code_string in store: {mask_code(invite.code_string)}."
+                )
+            seen.add(invite.code_string)
+            codes.append(invite)
+
+        return cls(codes=codes)
+
+    def _get_required(self, code_string: str) -> InviteCode:
+        invite = self._codes.get(code_string)
+        if invite is None:
+            raise InviteNotFoundError(f"Invite code {mask_code(code_string)} was not found.")
+        return invite
+
+    def _generate_unique_code(self, length: int = 12) -> str:
+        alphabet = string.ascii_uppercase + string.digits
+        for _ in range(10):
+            code_string = "".join(secrets.choice(alphabet) for _ in range(length))
+            if code_string not in self._codes:
+                return code_string
+        raise RuntimeError("Could not generate a unique invite code.")
