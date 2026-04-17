@@ -42,3 +42,33 @@ def save_manager(manager: InviteManager, path: str | Path = DEFAULT_STORE_PATH) 
     file_path.parent.mkdir(parents=True, exist_ok=True)
     serialized = json.dumps(manager.to_record(), indent=2) + "\n"
     _atomic_write_text(file_path, serialized)
+
+def _atomic_write_text(file_path: Path, text: str) -> None:
+    directory = file_path.parent
+    fd: int | None = None
+    tmp_path: Path | None = None
+    try:
+        fd, tmp_name = tempfile.mkstemp(
+            dir=directory,
+            prefix=f".{file_path.name}.",
+            suffix=".tmp",
+        )
+        tmp_path = Path(tmp_name)
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            fd = None
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp_path, file_path)
+        tmp_path = None
+    finally:
+        if fd is not None:
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+        if tmp_path is not None:
+            try:
+                tmp_path.unlink(missing_ok=True)
+            except OSError:
+                pass
