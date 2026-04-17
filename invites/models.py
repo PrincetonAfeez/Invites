@@ -293,3 +293,19 @@ class InviteCode:
             )
 
         return success_entry
+    
+    def revoke(self, reason: str, at: datetime | None = None) -> None:
+    
+        clean_reason = reason.strip()
+        if not clean_reason:
+            raise ValueError("revoke reason cannot be empty.")
+
+        timestamp = normalize_datetime(at or utc_now())
+        self._refresh_expiry(timestamp)
+        self._transition(
+            InviteState.REVOKED,
+            timestamp,
+            f"Invite revoked. Reason: {clean_reason}",
+            revoked_reason=clean_reason,
+        )
+
