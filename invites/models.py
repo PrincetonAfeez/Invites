@@ -257,3 +257,39 @@ class InviteCode:
             required_access_level=self.required_access_level,
             expires_at=self.expires_at,
         )
+    
+    def use(self, at: datetime | None = None) -> UsageLogEntry:
+        timestamp = normalize_datetime(at or utc_now())
+        self._refresh_expiry(timestamp)
+
+        if self.__state is not InviteState.ACTIVE:
+            entry = self._record_usage(
+                timestamp,
+                self._usage_outcome_for_state(self.__state),
+                self._failure_detail_for_state(self.__state),
+            )
+            raise InviteValidationError(
+                f"Invite code {self.masked_code} cannot be used: {entry.detail}"
+            )
+        self.__remaining_uses -= 1
+        success_entry = self._record_usage(
+            timestamp,
+            UsageOutcome.SUCCESS,
+            f"Use accepted. {self.__remaining_uses} use(s) remaining.",
+        )
+        self._lifecycle.append(
+            AuditEvent(
+                timestamp=timestamp,
+                event="used",
+                detail=f"Invite used successfully. Remaining uses: {self.__remaining_uses}.",
+            )
+        )
+
+        if self.__remaining_uses == 0:
+            self._transition(
+                InviteState.EXHAUSTED,
+                timestamp,
+                "Invite reached its maximum use count.",
+            )
+
+        return success_entry
