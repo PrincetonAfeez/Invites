@@ -150,4 +150,44 @@ class InviteCode:
         InviteState.EXPIRED: "expired",
         InviteState.REVOKED: "revoked",
     }
+    
+    def __init__(
+        self,
+        code_string: str,
+        creator_id: str,
+        required_access_level: int,
+        max_use_count: int,
+        expires_at: datetime,
+        *,
+        created_at: datetime | None = None,
+        state: InviteState = InviteState.GENERATED,
+        remaining_uses: int | None = None,
+        usage_log: list[UsageLogEntry] | None = None,
+        lifecycle: list[AuditEvent] | None = None,
+        revoked_reason: str | None = None,
+    ) -> None:
+        if max_use_count < 1:
+            raise ValueError("max_use_count must be at least 1.")
+        if required_access_level < 0:
+            raise ValueError("required_access_level must be 0 or greater.")
+        if not creator_id.strip():
+            raise ValueError("creator_id cannot be empty.")
+        if not code_string.strip():
+            raise ValueError("code_string cannot be empty.")
 
+        self.code_string = code_string
+        self.creator_id = creator_id.strip()
+        self.required_access_level = required_access_level
+        self.max_use_count = max_use_count
+        self.expires_at = normalize_datetime(expires_at)
+        self.__state = state
+        self.__remaining_uses = max_use_count if remaining_uses is None else remaining_uses
+        self.__revoked_reason = revoked_reason
+        self._usage_log = list(usage_log or [])
+        self._lifecycle = list(lifecycle or [])
+
+        if not self._lifecycle:
+            timestamp = normalize_datetime(created_at or utc_now())
+            self._lifecycle.append(
+                AuditEvent(timestamp=timestamp, event="created", detail="Invite code generated.")
+            )
