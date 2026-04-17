@@ -96,3 +96,13 @@ class AuditEvent:
             event=record["event"],
             detail=record["detail"],
         )
+
+@dataclass(frozen=True)
+class ValidationResult:
+    usable: bool
+    reason: str | None
+    state: InviteState | None
+    masked_code: str
+    remaining_uses: int | None
+    required_access_level: int | None
+    expires_at: datetime | None
