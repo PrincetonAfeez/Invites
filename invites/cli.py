@@ -82,3 +82,22 @@ def build_parser() -> argparse.ArgumentParser:
 
     return parser
 
+def main(argv: Iterable[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(list(argv) if argv is not None else None)
+    try:
+        manager = load_manager(args.store)
+    except StoreError as exc:
+        print(f"Error: {exc}")
+        return 1
+
+    try:
+        exit_code = _dispatch(args, manager)
+    except (InviteError, ValueError) as exc:
+        save_manager(manager, args.store)
+        print(f"Error: {exc}")
+        return 1
+
+    save_manager(manager, args.store)
+    return exit_code
+
