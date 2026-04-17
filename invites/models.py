@@ -117,3 +117,17 @@ class InviteSummary:
     max_use_count: int
     expires_at: datetime
     revoked_reason: str | None
+
+@dataclass(frozen=True)
+class InviteAudit:
+    masked_code: str
+    creator_id: str
+    required_access_level: int
+    state: InviteState
+    remaining_uses: int
+    max_use_count: int
+    expires_at: datetime
+    revoked_reason: str | None
+    usage_log: tuple[UsageLogEntry, ...]
+    lifecycle: tuple[AuditEvent, ...]
+
