@@ -6,3 +6,5 @@ from enum import Enum
 from typing import Any, ClassVar
 
 
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
