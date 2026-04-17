@@ -37,3 +37,8 @@ def load_manager(path: str | Path = DEFAULT_STORE_PATH) -> InviteManager:
     except InviteRecordError as exc:
         raise StoreError(f"Invite store failed validation ({file_path}): {exc}") from exc
 
+def save_manager(manager: InviteManager, path: str | Path = DEFAULT_STORE_PATH) -> None:
+    file_path = Path(path)
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    serialized = json.dumps(manager.to_record(), indent=2) + "\n"
+    _atomic_write_text(file_path, serialized)
