@@ -320,3 +320,17 @@ class InviteCode:
             expires_at=self.expires_at,
             revoked_reason=self.revoked_reason,
         )
+
+    def to_audit(self) -> InviteAudit:
+        return InviteAudit(
+            masked_code=self.masked_code,
+            creator_id=self.creator_id,
+            required_access_level=self.required_access_level,
+            state=self.state,
+            remaining_uses=self.remaining_uses,
+            max_use_count=self.max_use_count,
+            expires_at=self.expires_at,
+            revoked_reason=self.revoked_reason,
+            usage_log=tuple(self._usage_log),
+            lifecycle=tuple(self.lifecycle),
+        )
