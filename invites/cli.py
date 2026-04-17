@@ -205,3 +205,6 @@ def _resolve_expiry(expires_at: str | None, expires_in_hours: float | None) -> d
     if expires_in_hours is None or expires_in_hours <= 0:
         raise ValueError("expires-in-hours must be greater than 0.")
     return normalize_datetime(datetime.now().astimezone() + timedelta(hours=expires_in_hours))
+
+def _format_datetime(value: datetime) -> str:
+    return normalize_datetime(value).isoformat()
