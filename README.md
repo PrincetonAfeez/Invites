@@ -89,9 +89,14 @@ pytest
 pytest --cov=invites --cov-report=term-missing
 ```
 
-## Vault OS context
+The Invite Code System
 
-This package implements **Day 20 — one-time access codes** in the broader Vault OS curriculum: OOP, encapsulation, explicit state transitions, usage logging, and masked display. The README here focuses on **install and usage**; course specs live with your Vault OS materials.
+App: One-Time Access Code Generator 
+
+What it does: Build an InviteCode class with lifecycle: generated → sent → used → burned. Generate cryptographically random codes with configurable length and format. Validate codes against the registry. Each code has a max-use, an expiry date/time, a required access level, and a creator ID. A "burned" code can never be reused. Implement InviteManager with generate, validate, use, burn, and audit methods.
+
+
+The README here focuses on **install and usage**; course specs live with your Vault OS materials.
 
 ## License
 
