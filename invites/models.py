@@ -348,3 +348,30 @@ class InviteCode:
             "usage_log": [entry.to_record() for entry in self._usage_log],
             "lifecycle": [event.to_record() for event in self._lifecycle],
         }
+
+    @classmethod
+    def from_record(cls, record: dict[str, Any]) -> "InviteCode":
+        cls._validate_record_shape(record)
+        try:
+            usage_log = [
+                UsageLogEntry.from_record(item) for item in record.get("usage_log", [])
+            ]
+            lifecycle = [
+                AuditEvent.from_record(item) for item in record.get("lifecycle", [])
+            ]
+        except (KeyError, TypeError, ValueError) as exc:
+            raise InviteRecordError(f"Invalid nested invite record: {exc}") from exc
+
+        return cls(
+            code_string=record["code_string"],
+            creator_id=record["creator_id"],
+            required_access_level=record["required_access_level"],
+            max_use_count=record["max_use_count"],
+            expires_at=datetime.fromisoformat(record["expires_at"]),
+            state=InviteState(record["state"]),
+            remaining_uses=record["remaining_uses"],
+            revoked_reason=record.get("revoked_reason"),
+            usage_log=usage_log,
+            lifecycle=lifecycle,
+        )
+
