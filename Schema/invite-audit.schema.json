@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "invite-audit.schema.json",
+  "title": "InviteAudit",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "masked_code",
+    "creator_id",
+    "required_access_level",
+    "state",
+    "remaining_uses",
+    "max_use_count",
+    "expires_at",
+    "revoked_reason",
+    "usage_log",
+    "lifecycle"
+  ],
+  "properties": {
+    "masked_code": {
+      "type": "string",
+      "minLength": 1
+    },
+    "creator_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "required_access_level": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "GENERATED",
+        "ACTIVE",
+        "EXHAUSTED",
+        "EXPIRED",
+        "REVOKED"
+      ]
+    },
+    "remaining_uses": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "max_use_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revoked_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "usage_log": {
+      "type": "array",
+      "items": {
+        "$ref": "usage-log-entry.schema.json"
+      }
+    },
+    "lifecycle": {
+      "type": "array",
+      "items": {
+        "$ref": "audit-event.schema.json"
+      },
+      "minItems": 1
+    }
+  }
+}

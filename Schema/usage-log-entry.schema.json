@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "usage-log-entry.schema.json",
+  "title": "UsageLogEntry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "timestamp",
+    "outcome",
+    "detail"
+  ],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "SUCCESS",
+        "NOT_ACTIVE",
+        "EXHAUSTED",
+        "EXPIRED",
+        "REVOKED"
+      ]
+    },
+    "detail": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

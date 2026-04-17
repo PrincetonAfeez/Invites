@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "store.schema.json",
+  "title": "InviteStore",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "codes"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "codes": {
+      "type": "array",
+      "items": {
+        "$ref": "invite.schema.json"
+      }
+    }
+  },
+  "description": "Top-level JSON store used by invites.store.save_manager()."
+}

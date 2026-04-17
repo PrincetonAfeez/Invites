@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "invite.schema.json",
+  "title": "InviteRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "code_string",
+    "creator_id",
+    "required_access_level",
+    "max_use_count",
+    "expires_at",
+    "state",
+    "remaining_uses",
+    "usage_log",
+    "lifecycle"
+  ],
+  "properties": {
+    "code_string": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Z0-9]+$",
+      "description": "The raw invite code; generated as uppercase letters and digits."
+    },
+    "creator_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "required_access_level": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "max_use_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "GENERATED",
+        "ACTIVE",
+        "EXHAUSTED",
+        "EXPIRED",
+        "REVOKED"
+      ]
+    },
+    "remaining_uses": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "revoked_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "usage_log": {
+      "type": "array",
+      "items": {
+        "$ref": "usage-log-entry.schema.json"
+      }
+    },
+    "lifecycle": {
+      "type": "array",
+      "items": {
+        "$ref": "audit-event.schema.json"
+      },
+      "minItems": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "EXHAUSTED"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "remaining_uses": {
+            "const": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "REVOKED"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "then": {
+        "required": [
+          "revoked_reason"
+        ],
+        "properties": {
+          "revoked_reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ],
+  "description": "Stored invite record used by InviteCode.to_record(). Note: the GENERATED/max_use_count equality check is documented here, but JSON Schema validators without $data support cannot enforce the dynamic equality strictly."
+}
