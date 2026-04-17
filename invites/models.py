@@ -191,3 +191,26 @@ class InviteCode:
             self._lifecycle.append(
                 AuditEvent(timestamp=timestamp, event="created", detail="Invite code generated.")
             )
+
+    @property
+    def masked_code(self) -> str:
+        return mask_code(self.code_string)
+
+    @property
+    def state(self) -> InviteState:
+        self._refresh_expiry()
+        return self.__state
+
+    @property
+    def remaining_uses(self) -> int:
+        self._refresh_expiry()
+        return self.__remaining_uses
+
+    @property
+    def revoked_reason(self) -> str | None:
+        return self.__revoked_reason
+
+    @property
+    def usage_log(self) -> tuple[UsageLogEntry, ...]:
+        return tuple(self._usage_log)
+
