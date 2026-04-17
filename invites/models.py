@@ -131,3 +131,23 @@ class InviteAudit:
     usage_log: tuple[UsageLogEntry, ...]
     lifecycle: tuple[AuditEvent, ...]
 
+class InviteCode:
+    TRANSITIONS: ClassVar[dict[InviteState, set[InviteState]]] = {
+        InviteState.GENERATED: {InviteState.ACTIVE, InviteState.REVOKED},
+        InviteState.ACTIVE: {
+            InviteState.EXHAUSTED,
+            InviteState.EXPIRED,
+            InviteState.REVOKED,
+        },
+        InviteState.EXHAUSTED: set(),
+        InviteState.EXPIRED: set(),
+        InviteState.REVOKED: set(),
+    }
+
+    EVENT_NAMES: ClassVar[dict[InviteState, str]] = {
+        InviteState.ACTIVE: "activated",
+        InviteState.EXHAUSTED: "exhausted",
+        InviteState.EXPIRED: "expired",
+        InviteState.REVOKED: "revoked",
+    }
+
