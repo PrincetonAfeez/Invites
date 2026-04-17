@@ -101,3 +101,24 @@ def main(argv: Iterable[str] | None = None) -> int:
     save_manager(manager, args.store)
     return exit_code
 
+def _dispatch(args: argparse.Namespace, manager: InviteManager) -> int:
+    if args.command == "generate":
+        invite = manager.generate(
+            creator_id=args.creator_id,
+            required_access_level=args.access_level,
+            max_use_count=args.max_uses,
+            expires_at=_resolve_expiry(args.expires_at, args.expires_in_hours),
+            auto_activate=not args.inactive,
+        )
+        print(f"Generated invite (masked): {invite.masked_code}")
+        if args.show_code:
+            print(invite.code_string, file=sys.stderr)
+            print("(Full code printed once to stderr.)", file=sys.stderr)
+        else:
+            print("Full code is not printed. Re-run with --show-code to print it once to stderr.")
+        print(f"State: {invite.state.value}")
+        print(f"Creator ID: {invite.creator_id}")
+        print(f"Required access level: {invite.required_access_level}")
+        print(f"Remaining uses: {invite.remaining_uses}/{invite.max_use_count}")
+        print(f"Expires at: {_format_datetime(invite.expires_at)}")
+        return 0
