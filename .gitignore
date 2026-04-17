@@ -1,0 +1,39 @@
+# Bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Packaging / build
+build/
+dist/
+*.egg
+*.egg-info/
+pip-wheel-metadata/
+
+# Test & coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Local default store (CLI)
+invites_store.json
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
