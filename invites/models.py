@@ -461,3 +461,31 @@ class InviteCode:
                 timestamp,
                 "Invite expired during validation or access.",
             )
+
+    def _transition(
+        self,
+        new_state: InviteState,
+        timestamp: datetime,
+        detail: str,
+        *,
+        revoked_reason: str | None = None,
+    ) -> None:
+        current_state = self.__state
+        allowed_states = self.TRANSITIONS[current_state]
+        if new_state not in allowed_states:
+            raise InvalidStateTransitionError(
+                f"Invite code {self.masked_code} cannot transition from "
+                f"{current_state.value} to {new_state.value}."
+            )
+
+        self.__state = new_state
+        if revoked_reason is not None:
+            self.__revoked_reason = revoked_reason
+
+        self._lifecycle.append(
+            AuditEvent(
+                timestamp=timestamp,
+                event=self.EVENT_NAMES[new_state],
+                detail=f"{current_state.value} -> {new_state.value}. {detail}",
+            )
+        )
