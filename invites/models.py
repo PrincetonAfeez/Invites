@@ -106,3 +106,14 @@ class ValidationResult:
     remaining_uses: int | None
     required_access_level: int | None
     expires_at: datetime | None
+
+@dataclass(frozen=True)
+class InviteSummary:
+    masked_code: str
+    creator_id: str
+    required_access_level: int
+    state: InviteState
+    remaining_uses: int
+    max_use_count: int
+    expires_at: datetime
+    revoked_reason: str | None
