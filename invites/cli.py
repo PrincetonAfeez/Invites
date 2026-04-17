@@ -193,3 +193,15 @@ def _dispatch(args: argparse.Namespace, manager: InviteManager) -> int:
         return 0
 
     raise ValueError(f"Unknown command: {args.command}")
+
+
+def _resolve_expiry(expires_at: str | None, expires_in_hours: float | None) -> datetime:
+    if expires_at is not None:
+        parsed = datetime.fromisoformat(expires_at)
+        if parsed.tzinfo is None:
+            parsed = parsed.astimezone()
+        return normalize_datetime(parsed)
+
+    if expires_in_hours is None or expires_in_hours <= 0:
+        raise ValueError("expires-in-hours must be greater than 0.")
+    return normalize_datetime(datetime.now().astimezone() + timedelta(hours=expires_in_hours))
