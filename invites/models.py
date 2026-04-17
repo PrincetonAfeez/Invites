@@ -19,3 +19,38 @@ def mask_code(code_string: str) -> str:
     if len(code_string) <= 4:
         return code_string
     return f"{'*' * (len(code_string) - 4)}{code_string[-4:]}"
+
+class InviteState(str, Enum):
+    GENERATED = "GENERATED"
+    ACTIVE = "ACTIVE"
+    EXHAUSTED = "EXHAUSTED"
+    EXPIRED = "EXPIRED"
+    REVOKED = "REVOKED"
+
+
+class UsageOutcome(str, Enum):
+    SUCCESS = "SUCCESS"
+    NOT_ACTIVE = "NOT_ACTIVE"
+    EXHAUSTED = "EXHAUSTED"
+    EXPIRED = "EXPIRED"
+    REVOKED = "REVOKED"
+
+
+class InviteError(Exception):
+    """Base exception for invite-code errors."""
+
+
+class InvalidStateTransitionError(InviteError):
+    """Raised when a state transition is not allowed."""
+
+
+class InviteValidationError(InviteError):
+    """Raised when an invite code cannot be used."""
+
+
+class InviteNotFoundError(InviteError):
+    """Raised when an invite code cannot be found."""
+
+
+class InviteRecordError(InviteError):
+    """Raised when persisted invite data fails validation."""
