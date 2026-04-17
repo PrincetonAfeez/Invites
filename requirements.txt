@@ -1,0 +1,5 @@
+# vaultos-invites — runtime uses the Python 3.11+ standard library only.
+# Editable install + dev/test extras (pytest, hypothesis, pytest-cov):
+#   pip install -r requirements.txt
+
+-e .[dev]
