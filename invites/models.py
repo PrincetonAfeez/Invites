@@ -76,3 +76,23 @@ class UsageLogEntry:
             detail=record["detail"],
         )
 
+@dataclass(frozen=True)
+class AuditEvent:
+    timestamp: datetime
+    event: str
+    detail: str
+
+    def to_record(self) -> dict[str, str]:
+        return {
+            "timestamp": normalize_datetime(self.timestamp).isoformat(),
+            "event": self.event,
+            "detail": self.detail,
+        }
+
+    @classmethod
+    def from_record(cls, record: dict[str, str]) -> "AuditEvent":
+        return cls(
+            timestamp=datetime.fromisoformat(record["timestamp"]),
+            event=record["event"],
+            detail=record["detail"],
+        )
