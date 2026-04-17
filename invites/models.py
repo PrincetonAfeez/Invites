@@ -500,3 +500,26 @@ class InviteCode:
         entry = UsageLogEntry(timestamp=timestamp, outcome=outcome, detail=detail)
         self._usage_log.append(entry)
         return entry
+
+    @staticmethod
+    def _usage_outcome_for_state(state: InviteState) -> UsageOutcome:
+        mapping = {
+            InviteState.GENERATED: UsageOutcome.NOT_ACTIVE,
+            InviteState.EXHAUSTED: UsageOutcome.EXHAUSTED,
+            InviteState.EXPIRED: UsageOutcome.EXPIRED,
+            InviteState.REVOKED: UsageOutcome.REVOKED,
+        }
+        return mapping.get(state, UsageOutcome.NOT_ACTIVE)
+    
+    def _failure_detail_for_state(self, state: InviteState) -> str:
+        if state is InviteState.GENERATED:
+            return "Invite has not been activated yet."
+        if state is InviteState.EXHAUSTED:
+            return "Invite has no remaining uses."
+        if state is InviteState.EXPIRED:
+            return "Invite has expired."
+        if state is InviteState.REVOKED:
+            if self.__revoked_reason:
+                return f"Invite was revoked ({self.__revoked_reason})."
+            return "Invite was revoked."
+        return "Invite is not in a usable state."
