@@ -122,3 +122,74 @@ def _dispatch(args: argparse.Namespace, manager: InviteManager) -> int:
         print(f"Remaining uses: {invite.remaining_uses}/{invite.max_use_count}")
         print(f"Expires at: {_format_datetime(invite.expires_at)}")
         return 0
+
+    if args.command == "validate":
+        result = manager.validate(args.code)
+        print(f"Code: {result.masked_code}")
+        print(f"Usable: {'yes' if result.usable else 'no'}")
+        print(f"State: {result.state.value if result.state else 'NOT_FOUND'}")
+        if result.reason:
+            print(f"Reason: {result.reason}")
+        if result.remaining_uses is not None:
+            print(f"Remaining uses: {result.remaining_uses}")
+        if result.expires_at is not None:
+            print(f"Expires at: {_format_datetime(result.expires_at)}")
+        return 0 if result.usable else 1
+
+    if args.command == "use":
+        manager.use(args.code)
+        audit = manager.audit(args.code)
+        print(f"Invite {audit.masked_code} used successfully.")
+        print(f"State: {audit.state.value}")
+        print(f"Remaining uses: {audit.remaining_uses}")
+        return 0
+
+    if args.command == "revoke":
+        manager.revoke(args.code, args.reason)
+        audit = manager.audit(args.code)
+        print(f"Invite {audit.masked_code} revoked.")
+        print(f"Reason: {audit.revoked_reason}")
+        print(f"State: {audit.state.value}")
+        return 0
+
+    if args.command == "list":
+        summaries = manager.list_codes(filter_by_state=args.state)
+        if not summaries:
+            print("No invite codes found.")
+            return 0
+        for summary in summaries:
+            print(f"Code: {summary.masked_code}")
+            print(f"  Creator ID: {summary.creator_id}")
+            print(f"  Access level: {summary.required_access_level}")
+            print(f"  State: {summary.state.value}")
+            print(f"  Remaining uses: {summary.remaining_uses}/{summary.max_use_count}")
+            print(f"  Expires at: {_format_datetime(summary.expires_at)}")
+            if summary.revoked_reason:
+                print(f"  Revoked reason: {summary.revoked_reason}")
+        return 0
+
+    if args.command == "audit":
+        audit = manager.audit(args.code)
+        print(f"Invite: {audit.masked_code}")
+        print(f"Creator ID: {audit.creator_id}")
+        print(f"State: {audit.state.value}")
+        print(f"Access level: {audit.required_access_level}")
+        print(f"Remaining uses: {audit.remaining_uses}/{audit.max_use_count}")
+        print(f"Expires at: {_format_datetime(audit.expires_at)}")
+        if audit.revoked_reason:
+            print(f"Revoked reason: {audit.revoked_reason}")
+        print("Lifecycle:")
+        for event in audit.lifecycle:
+            print(f"  - {_format_datetime(event.timestamp)} | {event.event} | {event.detail}")
+        print("Usage log:")
+        if audit.usage_log:
+            for entry in audit.usage_log:
+                print(
+                    f"  - {_format_datetime(entry.timestamp)} | "
+                    f"{entry.outcome.value} | {entry.detail}"
+                )
+        else:
+            print("  - No use attempts recorded.")
+        return 0
+
+    raise ValueError(f"Unknown command: {args.command}")
