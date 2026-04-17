@@ -489,3 +489,14 @@ class InviteCode:
                 detail=f"{current_state.value} -> {new_state.value}. {detail}",
             )
         )
+
+
+    def _record_usage(
+        self,
+        timestamp: datetime,
+        outcome: UsageOutcome,
+        detail: str,
+    ) -> UsageLogEntry:
+        entry = UsageLogEntry(timestamp=timestamp, outcome=outcome, detail=detail)
+        self._usage_log.append(entry)
+        return entry
