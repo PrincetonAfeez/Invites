@@ -375,3 +375,81 @@ class InviteCode:
             lifecycle=lifecycle,
         )
 
+    @staticmethod
+    def _validate_record_shape(record: dict[str, Any]) -> None:
+        if not isinstance(record, dict):
+            raise InviteRecordError("Invite record must be a JSON object.")
+
+        required_keys = (
+            "code_string",
+            "creator_id",
+            "required_access_level",
+            "max_use_count",
+            "expires_at",
+            "state",
+            "remaining_uses",
+        )
+        missing = [key for key in required_keys if key not in record]
+        if missing:
+            raise InviteRecordError(f"Invite record missing keys: {', '.join(missing)}")
+
+        code_string = record["code_string"]
+        creator_id = record["creator_id"]
+        if not isinstance(code_string, str) or not code_string.strip():
+            raise InviteRecordError("code_string must be a non-empty string.")
+        if not isinstance(creator_id, str) or not creator_id.strip():
+            raise InviteRecordError("creator_id must be a non-empty string.")
+
+        max_use_count = record["max_use_count"]
+        required_access_level = record["required_access_level"]
+        remaining_uses = record["remaining_uses"]
+
+        if not isinstance(max_use_count, int) or max_use_count < 1:
+            raise InviteRecordError("max_use_count must be an integer >= 1.")
+        if not isinstance(required_access_level, int) or required_access_level < 0:
+            raise InviteRecordError("required_access_level must be an integer >= 0.")
+        if not isinstance(remaining_uses, int):
+            raise InviteRecordError("remaining_uses must be an integer.")
+
+        if remaining_uses < 0 or remaining_uses > max_use_count:
+            raise InviteRecordError(
+                "remaining_uses must be between 0 and max_use_count (inclusive)."
+            )
+
+        try:
+            state = InviteState(record["state"])
+        except ValueError as exc:
+            raise InviteRecordError(f"Unknown invite state: {record['state']!r}") from exc
+
+        expires_raw = record["expires_at"]
+        if not isinstance(expires_raw, str):
+            raise InviteRecordError("expires_at must be an ISO-8601 string.")
+        try:
+            datetime.fromisoformat(expires_raw)
+        except ValueError as exc:
+            raise InviteRecordError("expires_at is not a valid ISO-8601 timestamp.") from exc
+
+        revoked_reason = record.get("revoked_reason")
+        if revoked_reason is not None and not isinstance(revoked_reason, str):
+            raise InviteRecordError("revoked_reason must be a string or null.")
+
+        if state is InviteState.GENERATED and remaining_uses != max_use_count:
+            raise InviteRecordError(
+                "GENERATED invites must have remaining_uses equal to max_use_count."
+            )
+        if state is InviteState.ACTIVE and not (1 <= remaining_uses <= max_use_count):
+            raise InviteRecordError(
+                "ACTIVE invites must have remaining_uses between 1 and max_use_count."
+            )
+        if state is InviteState.EXHAUSTED and remaining_uses != 0:
+            raise InviteRecordError("EXHAUSTED invites must have remaining_uses equal to 0.")
+        if state is InviteState.REVOKED and not (revoked_reason and revoked_reason.strip()):
+            raise InviteRecordError("REVOKED invites must include a non-empty revoked_reason.")
+
+        for key in ("usage_log", "lifecycle"):
+            value = record.get(key, [])
+            if value is None:
+                raise InviteRecordError(f"{key} must be a list, not null.")
+            if not isinstance(value, list):
+                raise InviteRecordError(f"{key} must be a list.")
+
