@@ -309,3 +309,14 @@ class InviteCode:
             revoked_reason=clean_reason,
         )
 
+    def to_summary(self) -> InviteSummary:
+        return InviteSummary(
+            masked_code=self.masked_code,
+            creator_id=self.creator_id,
+            required_access_level=self.required_access_level,
+            state=self.state,
+            remaining_uses=self.remaining_uses,
+            max_use_count=self.max_use_count,
+            expires_at=self.expires_at,
+            revoked_reason=self.revoked_reason,
+        )
